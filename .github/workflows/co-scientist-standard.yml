@@ -19,14 +19,19 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y curl build-essential
           curl -fsSL https://pi.dev/install.sh | sh
+          export PATH="$HOME/.pi/bin:$PATH"
+          pi install npm:pi-mcp-extension npm:pi-web-access
           pip install 'litellm[proxy]' lean-mcp
           curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+          export PATH="$HOME/.elan/bin:$PATH"
+          lake new lean4_workspace math || true
 
       - name: Run Research Task
         env:
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
           E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
         run: |
           export PATH="$HOME/.pi/bin:$HOME/.elan/bin:$PATH"
           litellm --model nvidia_nim/moonshotai/kimi-k3 --api_key $NVIDIA_API_KEY --port 8080 --rpm 35 > litellm.log 2>&1 &

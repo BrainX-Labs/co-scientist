@@ -2,7 +2,7 @@
 
 An autonomous, zero-cost, neuro-symbolic research agent built using **Pi Agent**, **Moonshot Kimi-K3** (via NVIDIA NIM), **Lean 4 Theorem Prover**, **E2B MicroVM Sandboxes**, and multi-provider web search fallbacks.
 
-This system runs **100% in the cloud without local hardware, subscriptions, or credit cards** using GitHub Codespaces with zero global configuration required. All configurations are self-contained at the project level.
+This system runs **100% in the cloud without local hardware, subscriptions, or credit cards** using GitHub Codespaces or Actions with zero global configuration required. All configurations are self-contained at the project level.
 
 ## 🏗️ System Architecture
 
@@ -23,8 +23,8 @@ This system runs **100% in the cloud without local hardware, subscriptions, or c
 │  (Rate Limiter & Gateway @ 35 RPM)   │   ├──────────────────┤  ├───────────┤  │   (Firecracker │
 └──────────────────┬───────────────────┘   │ • ArXiv          │  │ • Tavily  │  │   Isolated     │
                    │                       │ • Lean 4 Prover  │  │ • Brave   │  │   Python/Bash) │
-                   ▼                       └──────────────────┘  │ • Exa     │  └────────────────┘
-┌──────────────────────────────────────┐                         │ • DuckGo  │
+                   ▼                       └──────────────────┘  │           │  └────────────────┘
+┌──────────────────────────────────────┐                         │           │
 │          NVIDIA NIM API              │                         └───────────┘
 │   (Moonshot Kimi-K3, 104B MoE,       │
 │    1M Context, Thinking Engine)      │
@@ -44,7 +44,7 @@ This system runs **100% in the cloud without local hardware, subscriptions, or c
 
 * **Automated Literature Search**: Direct integration with ArXiv API for downloading and parsing preprints.
 
-* **Resilient Web Search Fallbacks**: Automatic failover across Tavily, Brave, Exa, DuckDuckGo, and SearXNG.
+* **Resilient Web Search Fallbacks**: Automatic failover from Tavily to Brave when both providers are configured.
 
 * **Safe Code Execution**: Offloads Python data science, simulations, and algorithmic code execution to isolated E2B microVMs.
 
