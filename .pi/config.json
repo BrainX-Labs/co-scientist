@@ -1,0 +1,17 @@
+{
+  "defaultProvider": "nvidia-litellm-proxy",
+  "providers": {
+    "nvidia-litellm-proxy": {
+      "baseUrl": "http://localhost:8080/v1",
+      "apiKey": "dummy-key",
+      "models": [
+        {
+          "id": "nvidia_nim/moonshotai/kimi-k3",
+          "name": "Kimi-K3 Deep Research",
+          "contextWindow": 1048576,
+          "supportsThinking": true
+        }
+      ]
+    }
+  }
+}

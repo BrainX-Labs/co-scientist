@@ -1,0 +1,8 @@
+{
+  "search": {
+    "primaryProvider": "tavily",
+    "fallbackProviders": ["brave", "exa", "searxng", "duckduckgo"],
+    "maxRetries": 3,
+    "timeoutMs": 6000
+  }
+}

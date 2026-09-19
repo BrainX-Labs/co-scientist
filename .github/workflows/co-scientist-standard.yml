@@ -1,0 +1,43 @@
+name: Headless Co-Scientist Research (Standard)
+
+on:
+  workflow_dispatch:
+    inputs:
+      research_topic:
+        description: 'Scientific topic or question to research'
+        required: true
+        default: 'Prime gap distribution and verification of algebraic lemmas'
+
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Environment & Dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install -y curl build-essential
+          curl -fsSL https://pi.dev/install.sh | sh
+          pip install 'litellm[proxy]' lean-mcp
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+
+      - name: Run Research Task
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+        run: |
+          export PATH="$HOME/.pi/bin:$HOME/.elan/bin:$PATH"
+          litellm --model nvidia_nim/moonshotai/kimi-k3 --api_key $NVIDIA_API_KEY --port 8080 --rpm 35 > litellm.log 2>&1 &
+          sleep 3
+          pi -p --stream=all "Investigate: '${{ github.event.inputs.research_topic }}'. Output research_report.md."
+
+      - name: Commit Report
+        if: always()
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add research_report.md research_goals.json || true
+          git commit -m "docs: publish research findings" || echo "No changes"
+          git push

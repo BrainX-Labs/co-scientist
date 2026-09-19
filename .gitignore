@@ -1,0 +1,11 @@
+# Environment & Secrets
+.env
+
+# Dependencies & Build artifacts
+node_modules/
+lean4_workspace/.lake/
+lean4_workspace/build/
+
+# Logs & Research Outputs
+*.log
+papers/

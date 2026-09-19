@@ -1,0 +1,65 @@
+name: Headless Co-Scientist Research (Blacksmith)
+
+on:
+  workflow_dispatch:
+    inputs:
+      research_topic:
+        description: 'Scientific topic or question to research'
+        required: true
+        default: 'Quantum Dot Cellular Automata (QCA) logic gate efficiency vs CMOS at sub-5nm processes'
+
+jobs:
+  research:
+    # Uses Blacksmith high-performance 4-vCPU runner (Drop-in replacement)
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Pi Agent, LiteLLM, and Lean 4
+        run: |
+          curl -fsSL https://pi.dev/install.sh | sh
+          echo "$HOME/.pi/bin" >> $GITHUB_PATH
+          pip install 'litellm[proxy]' lean-mcp
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+          echo "$HOME/.elan/bin" >> $GITHUB_PATH
+          lake new lean4_workspace math || true
+
+      - name: Start LiteLLM Gateway
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+        run: |
+          litellm \
+            --model nvidia_nim/moonshotai/kimi-k3 \
+            --api_key $NVIDIA_API_KEY \
+            --port 8080 \
+            --rpm 35 > litellm.log 2>&1 &
+          sleep 5
+
+      - name: Execute Autonomous Deep Research
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
+        run: |
+          ~/.pi/bin/pi -p --stream=all "Execute deep research investigation on: '${{ github.event.inputs.research_topic || 'Quantum Dot Cellular Automata logic gate efficiency' }}'. Formulate hypotheses, search ArXiv, execute Python code in e2b-sandbox, verify Lean proofs, and generate research_report.md"
+
+      - name: Commit & Push Results
+        if: always()
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add research_report.md research_goals.json papers/ || true
+          git commit -m "research: automated report update [skip ci]" || echo "No changes to commit"
+          git push
