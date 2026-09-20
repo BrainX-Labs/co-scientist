@@ -1,0 +1,10 @@
+Deep research investigation on 'test e2b sandbox' completed.
+
+Activities performed:
+1. Hypothesis formulation: H1 (Python execution), H2 (resource limits), H3 (isolation).
+2. Literature & web search: Retrieved documentation, GitHub repo, and security details about E2B sandbox.
+3. Empirical code execution: Ran multiple tests in E2B sandbox using Python SDK, verifying basic execution, file I/O, network access, timeout enforcement, isolation, and package installation.
+4. Formal verification: Skipped as not applicable (no mathematical theorems).
+5. Synthesis: Wrote research report at ./research_report.md with explicit citations.
+
+The research report is ready for review.
