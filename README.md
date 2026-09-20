@@ -34,7 +34,7 @@ This system runs **100% in the cloud without local hardware, subscriptions, or c
 
 ## ✨ Features
 
-* **Project-Level Configuration**: Portable repository layout containing `.pi/config.json`, `.pi/mcp.json`, `.pi/web-search.json`, and `.env` setup.
+* **Project-Level Configuration**: Portable repository layout containing `.pi/agent/models.json`, `.pi/mcp.json`, `.pi/web-search.json`, and `.env` setup.
 
 * **Zero-DIY Architecture**: Built entirely on standard open-source packages, official MCP servers, and cloud infrastructure.
 

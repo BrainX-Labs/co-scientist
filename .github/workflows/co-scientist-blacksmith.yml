@@ -38,6 +38,8 @@ jobs:
           PI_BIN_DIR="$(dirname "$(command -v pi)")"
           echo "$PI_BIN_DIR" >> "$GITHUB_PATH"
           export PATH="$PI_BIN_DIR:$PATH"
+          mkdir -p "$HOME/.pi/agent"
+          cp .pi/agent/models.json "$HOME/.pi/agent/models.json"
           pi install npm:pi-mcp-extension --approve
           pi install npm:pi-web-access --approve
           pip install 'litellm[proxy]' lean-mcp
@@ -64,7 +66,7 @@ jobs:
           BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
         run: |
           set -o pipefail
-          pi --mode json "Execute deep research investigation on: '${{ github.event.inputs.research_topic || 'Quantum Dot Cellular Automata logic gate efficiency' }}'. Formulate hypotheses, search ArXiv, execute Python code in e2b-sandbox, verify Lean proofs, and generate research_report.md" \
+          pi --provider nvidia-litellm-proxy --model nvidia_nim/moonshotai/kimi-k3 --mode json "Execute deep research investigation on: '${{ github.event.inputs.research_topic || 'Quantum Dot Cellular Automata logic gate efficiency' }}'. Formulate hypotheses, search ArXiv, execute Python code in e2b-sandbox, verify Lean proofs, and generate research_report.md" \
             | tee "$RUNNER_TEMP/pi-events.jsonl"
 
       - name: Upload Pi JSON events
