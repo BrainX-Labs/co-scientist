@@ -49,11 +49,10 @@ jobs:
 
       - name: Start LiteLLM Gateway
         env:
-          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          NVIDIA_NIM_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
         run: |
           litellm \
             --model nvidia_nim/moonshotai/kimi-k3 \
-            --api_key "$NVIDIA_API_KEY" \
             --port 8080 \
             --rpm 35 > "$RUNNER_TEMP/litellm.log" 2>&1 &
           for attempt in $(seq 1 30); do
