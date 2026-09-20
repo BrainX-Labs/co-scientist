@@ -30,7 +30,8 @@
       }
     },
     "lean-prover": {
-      "command": "lean-mcp-server",
+      "command": "uvx",
+      "args": ["lean-lsp-mcp"],
       "lifecycle": "eager",
       "env": {
         "LEAN_PROJECT_PATH": "${PWD}/lean4_workspace"
