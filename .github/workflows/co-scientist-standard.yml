@@ -20,7 +20,8 @@ jobs:
           sudo apt-get update && sudo apt-get install -y curl build-essential
           curl -fsSL https://pi.dev/install.sh | sh
           export PATH="$HOME/.pi/bin:$PATH"
-          pi install npm:pi-mcp-extension npm:pi-web-access
+          pi install npm:pi-mcp-extension --approve
+          pi install npm:pi-web-access --approve
           pip install 'litellm[proxy]' lean-mcp
           curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
           export PATH="$HOME/.elan/bin:$PATH"
