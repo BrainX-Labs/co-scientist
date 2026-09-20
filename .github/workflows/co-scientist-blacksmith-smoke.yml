@@ -1,0 +1,97 @@
+name: Co-Scientist Blacksmith Setup Smoke Test
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  smoke-test:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 20
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Complete Toolchain
+        run: |
+          curl -fsSL https://pi.dev/install.sh | sh
+          PI_BIN_DIR="$(dirname "$(command -v pi)")"
+          echo "$PI_BIN_DIR" >> "$GITHUB_PATH"
+          export PATH="$PI_BIN_DIR:$PATH"
+          mkdir -p "$HOME/.pi/agent"
+          cp .pi/agent/models.json "$HOME/.pi/agent/models.json"
+          pi install npm:pi-mcp-extension --approve
+          pi install npm:pi-web-access --approve
+          pip install 'litellm[proxy]' paper-search-mcp uv
+          curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+          lake new lean4_workspace math || true
+          lake -C lean4_workspace build
+
+      - name: Start LiteLLM Gateway
+        env:
+          NVIDIA_NIM_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+        run: |
+          litellm \
+            --model nvidia_nim/moonshotai/kimi-k3 \
+            --port 8080 \
+            --drop_params \
+            > "$RUNNER_TEMP/litellm.log" 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8080/health >/dev/null; then
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              cat "$RUNNER_TEMP/litellm.log"
+              exit 1
+            fi
+            sleep 2
+          done
+
+      - name: Call Every MCP Server
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
+        run: |
+          set -o pipefail
+          pi --provider nvidia-litellm-proxy \
+            --model nvidia_nim/moonshotai/kimi-k3 \
+            --mode json \
+            "Run an end-to-end MCP smoke test. Call at least one safe tool from each configured MCP server, one server at a time: e2b-sandbox (create a sandbox and run a trivial Python expression), paper-search (search for one paper about Lean theorem proving), tavily-search (perform one web search), brave-search (perform one web search), and lean-prover (verify a tiny theorem such as 1 + 1 = 2). Do not merely describe the calls: actually invoke every MCP tool and report each result." \
+            | tee "$RUNNER_TEMP/pi-events.jsonl"
+
+      - name: Verify MCP Tool Calls
+        run: |
+          events="$RUNNER_TEMP/pi-events.jsonl"
+          test -s "$events"
+          for server in mcp_e2b_sandbox mcp_paper_search mcp_tavily_search mcp_brave_search mcp_lean_prover; do
+            if ! grep -q "\"name\":\"$server" "$events"; then
+              echo "Missing MCP tool call for $server"
+              exit 1
+            fi
+          done
+          echo "All configured MCP servers were called."
+
+      - name: Upload Smoke-Test Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: blacksmith-smoke-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/pi-events.jsonl
+            ${{ runner.temp }}/litellm.log
+          if-no-files-found: ignore
