@@ -19,7 +19,9 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y curl build-essential
           curl -fsSL https://pi.dev/install.sh | sh
-          export PATH="$HOME/.pi/bin:$PATH"
+          PI_BIN_DIR="$(dirname "$(command -v pi)")"
+          echo "$PI_BIN_DIR" >> "$GITHUB_PATH"
+          export PATH="$PI_BIN_DIR:$PATH"
           pi install npm:pi-mcp-extension --approve
           pi install npm:pi-web-access --approve
           pip install 'litellm[proxy]' lean-mcp
@@ -34,7 +36,7 @@ jobs:
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
           BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
         run: |
-          export PATH="$HOME/.pi/bin:$HOME/.elan/bin:$PATH"
+          export PATH="$HOME/.elan/bin:$PATH"
           litellm --model nvidia_nim/moonshotai/kimi-k3 --api_key $NVIDIA_API_KEY --port 8080 --rpm 35 > litellm.log 2>&1 &
           sleep 3
           pi -p --stream=all "Investigate: '${{ github.event.inputs.research_topic }}'. Output research_report.md."

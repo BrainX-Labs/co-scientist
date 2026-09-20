@@ -29,8 +29,9 @@ jobs:
       - name: Install Pi Agent, LiteLLM, and Lean 4
         run: |
           curl -fsSL https://pi.dev/install.sh | sh
-          echo "$HOME/.pi/bin" >> $GITHUB_PATH
-          export PATH="$HOME/.pi/bin:$PATH"
+          PI_BIN_DIR="$(dirname "$(command -v pi)")"
+          echo "$PI_BIN_DIR" >> "$GITHUB_PATH"
+          export PATH="$PI_BIN_DIR:$PATH"
           pi install npm:pi-mcp-extension --approve
           pi install npm:pi-web-access --approve
           pip install 'litellm[proxy]' lean-mcp
@@ -56,7 +57,7 @@ jobs:
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
           BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
         run: |
-          ~/.pi/bin/pi -p --stream=all "Execute deep research investigation on: '${{ github.event.inputs.research_topic || 'Quantum Dot Cellular Automata logic gate efficiency' }}'. Formulate hypotheses, search ArXiv, execute Python code in e2b-sandbox, verify Lean proofs, and generate research_report.md"
+          pi -p --stream=all "Execute deep research investigation on: '${{ github.event.inputs.research_topic || 'Quantum Dot Cellular Automata logic gate efficiency' }}'. Formulate hypotheses, search ArXiv, execute Python code in e2b-sandbox, verify Lean proofs, and generate research_report.md"
 
       - name: Commit & Push Results
         if: always()
