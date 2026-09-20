@@ -45,8 +45,17 @@ jobs:
           BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
         run: |
           export PATH="$HOME/.elan/bin:$PATH"
-          litellm --model nvidia_nim/moonshotai/kimi-k3 --api_key $NVIDIA_API_KEY --port 8080 --rpm 35 > litellm.log 2>&1 &
-          sleep 3
+          litellm --model nvidia_nim/moonshotai/kimi-k3 --api_key "$NVIDIA_API_KEY" --port 8080 --rpm 35 > "$RUNNER_TEMP/litellm.log" 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8080/health >/dev/null; then
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              cat "$RUNNER_TEMP/litellm.log"
+              exit 1
+            fi
+            sleep 2
+          done
           set -o pipefail
           pi --provider nvidia-litellm-proxy --model nvidia_nim/moonshotai/kimi-k3 --mode json "Investigate: '${{ github.event.inputs.research_topic }}'. Output research_report.md." \
             | tee "$RUNNER_TEMP/pi-events.jsonl"
@@ -56,7 +65,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: pi-events-${{ github.run_id }}
-          path: ${{ runner.temp }}/pi-events.jsonl
+          path: |
+            ${{ runner.temp }}/pi-events.jsonl
+            ${{ runner.temp }}/litellm.log
           if-no-files-found: ignore
 
       - name: Commit Report
