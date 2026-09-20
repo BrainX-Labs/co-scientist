@@ -3,17 +3,20 @@
     "e2b-sandbox": {
       "command": "npx",
       "args": ["-y", "@e2b/mcp-server"],
+      "lifecycle": "eager",
       "env": {
         "E2B_API_KEY": "${E2B_API_KEY}"
       }
     },
     "arxiv": {
       "command": "npx",
-      "args": ["-y", "@tejas242/arxiv-mcp"]
+      "args": ["-y", "@tejas242/arxiv-mcp"],
+      "lifecycle": "eager"
     },
     "tavily-search": {
       "command": "npx",
       "args": ["-y", "tavily-mcp"],
+      "lifecycle": "eager",
       "env": {
         "TAVILY_API_KEY": "${TAVILY_API_KEY}"
       }
@@ -21,12 +24,14 @@
     "brave-search": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-brave-search"],
+      "lifecycle": "eager",
       "env": {
         "BRAVE_API_KEY": "${BRAVE_API_KEY}"
       }
     },
     "lean-prover": {
       "command": "lean-mcp-server",
+      "lifecycle": "eager",
       "env": {
         "LEAN_PROJECT_PATH": "${PWD}/lean4_workspace"
       }
