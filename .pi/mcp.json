@@ -8,9 +8,9 @@
         "E2B_API_KEY": "${E2B_API_KEY}"
       }
     },
-    "arxiv": {
-      "command": "npx",
-      "args": ["-y", "@tejas242/arxiv-mcp"],
+    "paper-search": {
+      "command": "python",
+      "args": ["-m", "paper_search_mcp.server"],
       "lifecycle": "eager"
     },
     "tavily-search": {

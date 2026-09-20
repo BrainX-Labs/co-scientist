@@ -42,7 +42,7 @@ jobs:
           cp .pi/agent/models.json "$HOME/.pi/agent/models.json"
           pi install npm:pi-mcp-extension --approve
           pi install npm:pi-web-access --approve
-          pip install 'litellm[proxy]' lean-mcp
+          pip install 'litellm[proxy]' lean-mcp paper-search-mcp
           curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
           echo "$HOME/.elan/bin" >> $GITHUB_PATH
           lake new lean4_workspace math || true
