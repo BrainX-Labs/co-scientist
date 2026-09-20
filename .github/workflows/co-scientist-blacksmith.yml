@@ -57,7 +57,7 @@ jobs:
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
           BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
         run: |
-          pi -p --stream=all "Execute deep research investigation on: '${{ github.event.inputs.research_topic || 'Quantum Dot Cellular Automata logic gate efficiency' }}'. Formulate hypotheses, search ArXiv, execute Python code in e2b-sandbox, verify Lean proofs, and generate research_report.md"
+          pi -p "Execute deep research investigation on: '${{ github.event.inputs.research_topic || 'Quantum Dot Cellular Automata logic gate efficiency' }}'. Formulate hypotheses, search ArXiv, execute Python code in e2b-sandbox, verify Lean proofs, and generate research_report.md"
 
       - name: Commit & Push Results
         if: always()

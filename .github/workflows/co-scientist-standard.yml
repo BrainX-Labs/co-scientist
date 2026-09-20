@@ -39,7 +39,7 @@ jobs:
           export PATH="$HOME/.elan/bin:$PATH"
           litellm --model nvidia_nim/moonshotai/kimi-k3 --api_key $NVIDIA_API_KEY --port 8080 --rpm 35 > litellm.log 2>&1 &
           sleep 3
-          pi -p --stream=all "Investigate: '${{ github.event.inputs.research_topic }}'. Output research_report.md."
+          pi -p "Investigate: '${{ github.event.inputs.research_topic }}'. Output research_report.md."
 
       - name: Commit Report
         if: always()
