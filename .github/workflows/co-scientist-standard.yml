@@ -8,12 +8,18 @@ on:
         required: true
         default: 'Prime gap distribution and verification of algebraic lemmas'
 
+permissions:
+  contents: write
+
 jobs:
   research:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Create Research Branch
+        run: git switch --create "research/${GITHUB_RUN_ID}"
 
       - name: Set up Environment & Dependencies
         run: |
@@ -46,6 +52,11 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add research_report.md research_goals.json || true
-          git commit -m "docs: publish research findings" || echo "No changes"
-          git push
+          BRANCH_NAME="research/${GITHUB_RUN_ID}"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "research: automated report update [skip ci]"
+            git push --set-upstream origin "$BRANCH_NAME"
+          fi

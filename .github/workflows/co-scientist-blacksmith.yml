@@ -8,6 +8,9 @@ on:
         required: true
         default: 'Quantum Dot Cellular Automata (QCA) logic gate efficiency vs CMOS at sub-5nm processes'
 
+permissions:
+  contents: write
+
 jobs:
   research:
     # Uses Blacksmith high-performance 4-vCPU runner (Drop-in replacement)
@@ -15,6 +18,9 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Create Research Branch
+        run: git switch --create "research/${GITHUB_RUN_ID}"
 
       - name: Set up Python 3.11
         uses: actions/setup-python@v5
@@ -64,6 +70,11 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add research_report.md research_goals.json papers/ || true
-          git commit -m "research: automated report update [skip ci]" || echo "No changes to commit"
-          git push
+          BRANCH_NAME="research/${GITHUB_RUN_ID}"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "research: automated report update [skip ci]"
+            git push --set-upstream origin "$BRANCH_NAME"
+          fi
