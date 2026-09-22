@@ -36,7 +36,7 @@ jobs:
           curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
           export PATH="$HOME/.elan/bin:$PATH"
           lake new lean4_workspace math || true
-          lake -C lean4_workspace build
+          (cd lean4_workspace && lake build)
 
       - name: Run Research Task
         env:

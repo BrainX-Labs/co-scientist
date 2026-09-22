@@ -21,6 +21,6 @@ export PATH="$HOME/.elan/bin:$PATH"
 
 # 5. Initialize Lean Workspace with Mathlib
 lake new lean4_workspace math || true
-lake -C lean4_workspace build
+(cd lean4_workspace && lake build)
 
 echo "Setup complete! All tools, provers, and agent dependencies installed."

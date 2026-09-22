@@ -47,7 +47,7 @@ jobs:
           echo "$HOME/.elan/bin" >> $GITHUB_PATH
           export PATH="$HOME/.elan/bin:$PATH"
           lake new lean4_workspace math || true
-          lake -C lean4_workspace build
+          (cd lean4_workspace && lake build)
 
       - name: Start LiteLLM Gateway
         env:
