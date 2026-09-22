@@ -1,0 +1,59 @@
+name: Co-Scientist Environment Diagnostics
+
+on:
+  workflow_dispatch:
+    inputs:
+      env_var_name:
+        description: Environment variable to inspect
+        required: true
+        type: choice
+        options:
+          - NVIDIA_API_KEY
+          - NVIDIA_NIM_API_KEY
+          - E2B_API_KEY
+          - TAVILY_API_KEY
+          - BRAVE_API_KEY
+
+permissions:
+  contents: read
+
+jobs:
+  inspect-env-var:
+    runs-on: ubuntu-latest
+    env:
+      NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+      NVIDIA_NIM_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+      E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+      TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+      BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
+      ENV_VAR_NAME: ${{ inputs.env_var_name }}
+    steps:
+      - name: Inspect Environment Variable
+        shell: python
+        run: |
+          import os
+          import re
+          import sys
+
+          variable_name = os.environ["ENV_VAR_NAME"]
+          value = os.environ.get(variable_name)
+          if value is None:
+              print(f"{variable_name}: not present")
+              sys.exit(1)
+
+          words = value.split()
+          first_words = " ".join(words[:2])
+          last_words = " ".join(words[-2:])
+          has_newline = "\n" in value or "\r" in value
+          has_inaccurate_whitespace = bool(
+              value != value.strip()
+              or "\t" in value
+              or re.search(r" {2,}", value)
+          )
+
+          print(f"variable: {variable_name}")
+          print(f"first_two_words: {first_words}")
+          print(f"last_two_words: {last_words}")
+          print(f"length: {len(value)}")
+          print(f"has_inaccurate_whitespace: {has_inaccurate_whitespace}")
+          print(f"has_newline_characters: {has_newline}")
