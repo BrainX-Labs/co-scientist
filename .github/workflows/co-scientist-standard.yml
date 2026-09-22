@@ -33,6 +33,9 @@ jobs:
           pi install npm:pi-mcp-extension --approve
           pi install npm:pi-web-access --approve
           pip install 'litellm[proxy]' paper-search-mcp uv
+          UV_BIN_DIR="$(dirname "$(command -v uvx)")"
+          echo "$UV_BIN_DIR" >> "$GITHUB_PATH"
+          export PATH="$UV_BIN_DIR:$PATH"
           curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
           export PATH="$HOME/.elan/bin:$PATH"
           lake new lean4_workspace math || true

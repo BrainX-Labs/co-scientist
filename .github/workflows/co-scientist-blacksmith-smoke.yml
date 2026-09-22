@@ -35,6 +35,9 @@ jobs:
           pi install npm:pi-mcp-extension --approve
           pi install npm:pi-web-access --approve
           pip install 'litellm[proxy]' paper-search-mcp uv
+          UV_BIN_DIR="$(dirname "$(command -v uvx)")"
+          echo "$UV_BIN_DIR" >> "$GITHUB_PATH"
+          export PATH="$UV_BIN_DIR:$PATH"
           curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh -s -- -y
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
           export PATH="$HOME/.elan/bin:$PATH"
@@ -72,7 +75,7 @@ jobs:
           pi --provider nvidia-litellm-proxy \
             --model nvidia_nim/moonshotai/kimi-k3 \
             --mode json \
-            "Run an end-to-end MCP smoke test. Call at least one safe tool from each configured MCP server, one server at a time: e2b-sandbox (create a sandbox and run a trivial Python expression), paper-search (search for one paper about Lean theorem proving), tavily-search (perform one web search), brave-search (perform one web search), and lean-prover (verify a tiny theorem such as 1 + 1 = 2). Do not merely describe the calls: actually invoke every MCP tool and report each result." \
+            "Run an end-to-end MCP smoke test. Call at least one safe tool from each configured MCP server, one server at a time: e2b-sandbox (create a sandbox and run a trivial Python expression), paper-search (search for one paper about Lean theorem proving), tavily-search (perform one web search), brave-search (perform one web search), and lean-prover (call the lean_verify tool to verify a tiny theorem such as 1 + 1 = 2). Do not merely describe the calls: actually invoke every MCP tool and report each result." \
             | tee "$RUNNER_TEMP/pi-events.jsonl"
 
       - name: Verify MCP Tool Calls
