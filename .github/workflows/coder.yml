@@ -1,0 +1,101 @@
+name: Coder (Pi + NVIDIA NIM + Blacksmith)
+
+on:
+  workflow_dispatch:
+    inputs:
+      coding_task:
+        description: 'Coding task for the Pi coding agent'
+        required: true
+        default: 'Inspect the repository, identify one meaningful issue, implement a focused fix, and run the relevant tests.'
+
+permissions:
+  contents: write
+
+jobs:
+  coder:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 60
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Create Coder Branch
+        run: git switch --create "coder/${GITHUB_RUN_ID}"
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install Pi Agent and Web Search
+        run: |
+          curl -fsSL https://pi.dev/install.sh | sh
+          PI_BIN_DIR="$(dirname "$(command -v pi)")"
+          echo "$PI_BIN_DIR" >> "$GITHUB_PATH"
+          export PATH="$PI_BIN_DIR:$PATH"
+          mkdir -p "$HOME/.pi/agent"
+          cp .pi/agent/models.json "$HOME/.pi/agent/models.json"
+          pi install npm:pi-web-access --approve
+          pip install 'litellm[proxy]'
+
+      - name: Start NVIDIA NIM Gateway
+        env:
+          NVIDIA_NIM_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+        run: |
+          litellm \
+            --model nvidia_nim/moonshotai/kimi-k3 \
+            --port 8080 \
+            --drop_params \
+            > "$RUNNER_TEMP/litellm.log" 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:8080/health >/dev/null; then
+              break
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              cat "$RUNNER_TEMP/litellm.log"
+              exit 1
+            fi
+            sleep 2
+          done
+
+      - name: Execute Coding Task
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+          BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
+          CODING_TASK: ${{ inputs.coding_task }}
+        run: |
+          set -o pipefail
+          pi --provider nvidia-litellm-proxy \
+            --model nvidia_nim/moonshotai/kimi-k3 \
+            --mode json \
+            "Work in the checked-out repository as an autonomous coding agent. Inspect the relevant code, implement the requested task, and run focused tests or checks. Use the configured web search tools when external documentation or current information is useful. Keep changes scoped, preserve existing user work, and do not claim checks that you did not run. Task: ${CODING_TASK}" \
+            | tee "$RUNNER_TEMP/pi-events.jsonl"
+
+      - name: Upload Pi and Gateway Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coder-logs-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/pi-events.jsonl
+            ${{ runner.temp }}/litellm.log
+          if-no-files-found: ignore
+
+      - name: Commit and Push Changes
+        if: success()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "coder: automated implementation [skip ci]"
+            git push --set-upstream origin "coder/${GITHUB_RUN_ID}"
+          fi
