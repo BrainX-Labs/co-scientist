@@ -29,6 +29,11 @@ jobs:
       - name: Create per-run branch
         run: git switch --create "opencoder/${GITHUB_RUN_ID}"
 
+      - name: Configure Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -63,9 +68,4 @@ jobs:
         with:
           model: litellm/kimi-k3
           use_github_token: true
-          prompt: |
-            Work only on the checked-out repository code for this task:
-            ${{ inputs.coding_task }}
-
-            Make and push code changes only to the current per-run branch. Do not
-            create or modify issues, pull requests, or comments.
+          prompt: ${{ inputs.coding_task }}
