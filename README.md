@@ -69,6 +69,10 @@ Informal Hypothesis ──► Auto-Formalization (Lean 4) ──► Compiler Tac
 
 ## 🏃 Running the Agent
 
+### GitHub Actions OpenCode Coder
+
+The [OpenCode Coder workflow](.github/workflows/opencoder.yml) runs on the Blacksmith runner with NVIDIA NIM (`moonshotai/kimi-k3`) and the Tavily MCP web-search server. Add `NVIDIA_API_KEY` and `TAVILY_API_KEY` as Actions secrets, then start a task from the Actions tab. The workflow uses GitHub's built-in token, creates a unique `opencoder/<run-id>` branch, and grants only `contents: write`; it does not handle issue or pull-request comments.
+
 ### Codespace
 
 #### Step 1: Populate `.env`

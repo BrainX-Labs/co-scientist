@@ -1,0 +1,42 @@
+name: OpenCode Coder (NVIDIA NIM + Blacksmith)
+
+on:
+  workflow_dispatch:
+    inputs:
+      coding_task:
+        description: "Coding task for the OpenCode agent"
+        required: true
+        default: "Inspect the repository, identify one meaningful issue, implement a focused fix, and run the relevant tests."
+
+permissions:
+  contents: write
+
+jobs:
+  opencoder:
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 60
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Create per-run branch
+        run: git switch --create "opencoder/${GITHUB_RUN_ID}"
+
+      - name: Run OpenCode
+        uses: anomalyco/opencode/github@latest
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+        with:
+          model: nvidia/moonshotai/kimi-k3
+          use_github_token: true
+          prompt: |
+            Work only on the checked-out repository code for this task:
+            ${{ inputs.coding_task }}
+
+            Make and push code changes only to the current per-run branch. Do not
+            create or modify issues, pull requests, or comments.
