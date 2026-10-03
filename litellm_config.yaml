@@ -1,0 +1,12 @@
+model_list:
+  - model_name: kimi-k3
+    litellm_params:
+      model: nvidia_nim/moonshotai/kimi-k3
+      api_key: os.environ/NVIDIA_NIM_API_KEY
+
+litellm_settings:
+  drop_params: true
+  callbacks: litellm_hooks.proxy_handler_instance
+
+router_settings:
+  num_retries: 3

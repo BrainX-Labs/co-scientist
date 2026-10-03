@@ -1,16 +1,15 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "provider": {
-    "nvidia": {
+    "litellm": {
       "npm": "@ai-sdk/openai-compatible",
-      "name": "NVIDIA NIM",
+      "name": "LiteLLM",
       "options": {
-        "baseURL": "https://integrate.api.nvidia.com/v1",
-        "apiKey": "{env:NVIDIA_API_KEY}"
+        "baseURL": "http://127.0.0.1:4000/v1"
       },
       "models": {
-        "moonshotai/kimi-k3": {
-          "name": "Kimi K3"
+        "kimi-k3": {
+          "name": "Kimi K3 via NVIDIA NIM"
         }
       }
     }

@@ -11,6 +11,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: opencoder-nvidia-nim-${{ github.repository }}
+  cancel-in-progress: false
+
 jobs:
   opencoder:
     runs-on: blacksmith-4vcpu-ubuntu-2404
@@ -25,14 +29,39 @@ jobs:
       - name: Create per-run branch
         run: git switch --create "opencoder/${GITHUB_RUN_ID}"
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install LiteLLM
+        run: python -m pip install "litellm[proxy]"
+
+      - name: Start LiteLLM proxy
+        env:
+          NVIDIA_NIM_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+        run: |
+          litellm --config litellm_config.yaml --port 4000 --num_workers 1 \
+            > "$RUNNER_TEMP/litellm.log" 2>&1 &
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent http://127.0.0.1:4000/health/readiness >/dev/null; then
+              echo "LiteLLM proxy is ready"
+              exit 0
+            fi
+            if [ "$attempt" -eq 30 ]; then
+              cat "$RUNNER_TEMP/litellm.log"
+              exit 1
+            fi
+            sleep 2
+          done
+
       - name: Run OpenCode
         uses: anomalyco/opencode/github@latest
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
           TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
         with:
-          model: nvidia/moonshotai/kimi-k3
+          model: litellm/kimi-k3
           use_github_token: true
           prompt: |
             Work only on the checked-out repository code for this task:
